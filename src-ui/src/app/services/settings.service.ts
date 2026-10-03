@@ -20,7 +20,7 @@ import {
   hexToHsl,
 } from 'src/app/utils/color'
 import { DEFAULT_APP_TITLE, environment } from 'src/environments/environment'
-import { DEFAULT_DISPLAY_FIELDS, DisplayField } from '../data/document'
+import { AVAILABLE_DISPLAY_FIELDS, DisplayField } from '../data/document'
 import { RemoteOCRModeConfig } from '../data/paperless-config'
 import { SavedView } from '../data/saved-view'
 import {
@@ -328,7 +328,7 @@ export class SettingsService {
   )
 
   readonly allDisplayFields = signal<Array<{ id: DisplayField; name: string }>>(
-    DEFAULT_DISPLAY_FIELDS
+    AVAILABLE_DISPLAY_FIELDS
   )
   public displayFieldsInit: EventEmitter<boolean> = new EventEmitter()
 
@@ -391,7 +391,7 @@ export class SettingsService {
   }
 
   public initializeDisplayFields() {
-    const displayFields = DEFAULT_DISPLAY_FIELDS?.map((field) => {
+    const displayFields = AVAILABLE_DISPLAY_FIELDS.map((field) => {
       if (
         field.id === DisplayField.NOTES &&
         !this.get(SETTINGS_KEYS.NOTES_ENABLED)
@@ -406,6 +406,8 @@ export class SettingsService {
           DisplayField.ADDED,
           DisplayField.ASN,
           DisplayField.PAGE_COUNT,
+          DisplayField.ORIGINAL_SIZE,
+          DisplayField.ARCHIVE_SIZE,
           DisplayField.SHARED,
         ].includes(field.id)
       ) {

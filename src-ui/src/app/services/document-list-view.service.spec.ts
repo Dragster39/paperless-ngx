@@ -746,10 +746,14 @@ describe('DocumentListViewService', () => {
     documentListViewService.displayFields = [
       DisplayField.ADDED,
       DisplayField.TITLE,
+      DisplayField.ORIGINAL_SIZE,
+      DisplayField.ARCHIVE_SIZE,
     ]
     expect(documentListViewService.displayFields).toEqual([
       DisplayField.ADDED,
       DisplayField.TITLE,
+      DisplayField.ORIGINAL_SIZE,
+      DisplayField.ARCHIVE_SIZE,
     ])
     expect(localStorageSpy).toHaveBeenCalled()
     // reload triggered

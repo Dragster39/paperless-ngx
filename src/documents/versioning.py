@@ -11,6 +11,7 @@ from django.db.models import Prefetch
 from django.db.models import QuerySet
 from django.db.models import Subquery
 from django.db.models import Window
+from django.db.models import prefetch_related_objects
 from django.db.models.functions import Coalesce
 from django.db.models.functions import RowNumber
 
@@ -26,6 +27,49 @@ def versions_newest_first(documents: QuerySet[Document]) -> QuerySet[Document]:
     because an existing document can be merged in as a version
     """
     return documents.order_by(F("version_index").desc(nulls_last=True), "-id")
+
+
+FILE_VERSIONS_PREFETCH_ATTR = "_file_versions_prefetch"
+
+
+def document_versions_prefetch(*, to_attr: str | None = None) -> Prefetch:
+    """Load version summaries and file paths without historical OCR content."""
+    return Prefetch(
+        "versions",
+        queryset=Document.objects.only(
+            "id",
+            "added",
+            "checksum",
+            "version_label",
+            "root_document_id",
+            "version_index",
+            "page_count",
+            "filename",
+            "archive_filename",
+            "mime_type",
+            "archive_checksum",
+        ),
+        to_attr=to_attr,
+    )
+
+
+def prefetch_document_file_versions(documents: list[Document]) -> None:
+    """Reuse cached versions, otherwise batch file information for root documents.
+
+    Use a separate attribute so serializers without a content prefetch do not
+    mistake these file-only versions for prefetched effective OCR content.
+    """
+    roots = [
+        document
+        for document in documents
+        if document.root_document_id is None
+        and "versions" not in getattr(document, "_prefetched_objects_cache", {})
+        and not hasattr(document, FILE_VERSIONS_PREFETCH_ATTR)
+    ]
+    prefetch_related_objects(
+        roots,
+        document_versions_prefetch(to_attr=FILE_VERSIONS_PREFETCH_ATTR),
+    )
 
 
 def annotate_effective_content(documents: QuerySet[Document]) -> QuerySet[Document]:

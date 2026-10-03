@@ -628,6 +628,8 @@ class SavedView(ModelWithOwner):
         SHARED = ("shared", _("Shared"))
         ASN = ("asn", _("ASN"))
         PAGE_COUNT = ("pagecount", _("Pages"))
+        ORIGINAL_SIZE = ("original_size", _("Original file size"))
+        ARCHIVE_SIZE = ("archive_size", _("Archive file size"))
         CUSTOM_FIELD = ("custom_field_%d", ("Custom Field"))
 
     name = models.CharField(_("name"), max_length=128)

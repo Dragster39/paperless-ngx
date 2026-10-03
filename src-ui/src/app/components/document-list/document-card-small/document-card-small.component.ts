@@ -25,6 +25,7 @@ import { CorrespondentNamePipe } from 'src/app/pipes/correspondent-name.pipe'
 import { CustomDatePipe } from 'src/app/pipes/custom-date.pipe'
 import { DocumentTitlePipe } from 'src/app/pipes/document-title.pipe'
 import { DocumentTypeNamePipe } from 'src/app/pipes/document-type-name.pipe'
+import { FileSizePipe } from 'src/app/pipes/file-size.pipe'
 import { IsNumberPipe } from 'src/app/pipes/is-number.pipe'
 import { StoragePathNamePipe } from 'src/app/pipes/storage-path-name.pipe'
 import { UsernamePipe } from 'src/app/pipes/username.pipe'
@@ -50,6 +51,7 @@ import { LoadingComponentWithPermissions } from '../../loading-component/loading
     UsernamePipe,
     CorrespondentNamePipe,
     DocumentTypeNamePipe,
+    FileSizePipe,
     StoragePathNamePipe,
     IfPermissionsDirective,
     CustomDatePipe,

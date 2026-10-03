@@ -111,6 +111,16 @@
               </div>
             </div>
           }
+          @if (displayFields().includes(DisplayField.ORIGINAL_SIZE)) {
+            <div class="ps-0 p-1">
+              <small><span i18n>Original file size</span>: {{document().original_size == null ? '—' : (document().original_size | fileSize)}}</small>
+            </div>
+          }
+          @if (displayFields().includes(DisplayField.ARCHIVE_SIZE)) {
+            <div class="ps-0 p-1">
+              <small><span i18n>Archive file size</span>: {{document().archive_size == null ? '—' : (document().archive_size | fileSize)}}</small>
+            </div>
+          }
           @if (displayFields().includes(DisplayField.ASN) && document().archive_serial_number | isNumber) {
             <div class="ps-0 p-1">
               <i-bs width="1em" height="1em" class="me-2 text-muted" name="upc-scan"></i-bs>

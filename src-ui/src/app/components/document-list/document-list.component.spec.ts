@@ -374,6 +374,39 @@ describe('DocumentListComponent', () => {
     documentListService.sortField = 'created'
   })
 
+  it('should display optional file size columns without sorting', () => {
+    jest.spyOn(documentListService, 'documents', 'get').mockReturnValue([
+      { ...docs[0], original_size: 0, archive_size: null },
+      { ...docs[1], original_size: 1024, archive_size: 2 * 1024 * 1024 },
+    ])
+    component.list.displayMode = DisplayMode.TABLE
+    component.activeDisplayFields = [
+      DisplayField.ORIGINAL_SIZE,
+      DisplayField.ARCHIVE_SIZE,
+    ]
+    fixture.detectChanges()
+
+    const text = fixture.nativeElement.textContent
+    expect(text).toContain('Original file size')
+    expect(text).toContain('Archive file size')
+    expect(text).toContain('0 bytes')
+    expect(text).toContain('—')
+    expect(text).toContain('1 KB')
+    expect(text).toContain('2.0 MB')
+    expect(
+      fixture.debugElement.queryAll(By.directive(SortableDirective))
+    ).toHaveLength(0)
+
+    component.toggleDisplayField(DisplayField.ARCHIVE_SIZE)
+    fixture.detectChanges()
+    expect(
+      fixture.nativeElement.querySelector('thead').textContent
+    ).not.toContain('Archive file size')
+    expect(fixture.nativeElement.querySelector('thead').textContent).toContain(
+      'Original file size'
+    )
+  })
+
   it('should support setting sort field by table head', () => {
     component.activeDisplayFields = [DisplayField.ASN]
     jest.spyOn(documentListService, 'documents', 'get').mockReturnValue(docs)

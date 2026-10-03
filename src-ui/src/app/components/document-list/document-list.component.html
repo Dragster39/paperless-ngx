@@ -288,6 +288,12 @@
                   Shared
                 </th>
               }
+              @if (activeDisplayFields.includes(DisplayField.ORIGINAL_SIZE)) {
+                <th i18n>Original file size</th>
+              }
+              @if (activeDisplayFields.includes(DisplayField.ARCHIVE_SIZE)) {
+                <th i18n>Archive file size</th>
+              }
               @for (field_id of activeDisplayCustomFields; track field_id) {
                 <th class="cursor-pointer"
                   pngxSortable="{{field_id}}"
@@ -387,6 +393,12 @@
                   <td>
                     @if (d.is_shared_by_requester) { <ng-container i18n>Yes</ng-container> } @else { <ng-container i18n>No</ng-container> }
                   </td>
+                }
+                @if (activeDisplayFields.includes(DisplayField.ORIGINAL_SIZE)) {
+                  <td>{{d.original_size == null ? '—' : (d.original_size | fileSize)}}</td>
+                }
+                @if (activeDisplayFields.includes(DisplayField.ARCHIVE_SIZE)) {
+                  <td>{{d.archive_size == null ? '—' : (d.archive_size | fileSize)}}</td>
                 }
                 @for (field of activeDisplayCustomFields; track field) {
                   <td class="">

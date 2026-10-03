@@ -6,6 +6,7 @@ from collections.abc import Iterable
 from collections.abc import Iterator
 from os import utime
 from pathlib import Path
+from stat import S_ISREG
 from subprocess import CompletedProcess
 from subprocess import run
 from typing import TYPE_CHECKING
@@ -24,6 +25,17 @@ _M = TypeVar("_M", bound="Model")
 
 # A function that wraps an iterable — typically used to inject a progress bar.
 IterWrapper = Callable[[Iterable[_T]], Iterable[_T]]
+
+
+def get_file_size(filename: Path | str | None) -> int | None:
+    """Return a regular file's size in bytes, or None if it is missing."""
+    if filename is None:
+        return None
+    try:
+        file_stat = Path(filename).stat()
+    except (FileNotFoundError, NotADirectoryError):
+        return None
+    return file_stat.st_size if S_ISREG(file_stat.st_mode) else None
 
 
 def identity(iterable: Iterable[_T]) -> Iterable[_T]:

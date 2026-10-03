@@ -21,9 +21,9 @@ import { DocumentCardSmallComponent } from 'src/app/components/document-list/doc
 import { LoadingComponentWithPermissions } from 'src/app/components/loading-component/loading.component'
 import { CustomField, CustomFieldDataType } from 'src/app/data/custom-field'
 import {
+  AVAILABLE_DISPLAY_FIELDS,
   DEFAULT_DASHBOARD_DISPLAY_FIELDS,
   DEFAULT_DASHBOARD_VIEW_PAGE_SIZE,
-  DEFAULT_DISPLAY_FIELDS,
   DisplayField,
   DisplayMode,
   Document,
@@ -42,6 +42,7 @@ import { CorrespondentNamePipe } from 'src/app/pipes/correspondent-name.pipe'
 import { CustomDatePipe } from 'src/app/pipes/custom-date.pipe'
 import { DocumentTitlePipe } from 'src/app/pipes/document-title.pipe'
 import { DocumentTypeNamePipe } from 'src/app/pipes/document-type-name.pipe'
+import { FileSizePipe } from 'src/app/pipes/file-size.pipe'
 import { StoragePathNamePipe } from 'src/app/pipes/storage-path-name.pipe'
 import { UsernamePipe } from 'src/app/pipes/username.pipe'
 import { DocumentListViewService } from 'src/app/services/document-list-view.service'
@@ -73,6 +74,7 @@ import { WidgetFrameComponent } from '../widget-frame/widget-frame.component'
     UsernamePipe,
     CorrespondentNamePipe,
     DocumentTypeNamePipe,
+    FileSizePipe,
     StoragePathNamePipe,
     AsyncPipe,
     DocumentTitlePipe,
@@ -305,6 +307,6 @@ export class SavedViewWidgetComponent
       const id = field.split('_')[2]
       return this.customFields.find((f) => f.id === parseInt(id))?.name
     }
-    return DEFAULT_DISPLAY_FIELDS.find((f) => f.id === field)?.name
+    return AVAILABLE_DISPLAY_FIELDS.find((f) => f.id === field)?.name
   }
 }

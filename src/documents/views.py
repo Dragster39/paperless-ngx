@@ -233,8 +233,10 @@ from documents.tasks import sanity_check
 from documents.tasks import train_classifier
 from documents.tasks import update_document_parent_tags
 from documents.utils import get_boolean
+from documents.utils import get_file_size
 from documents.versioning import VersionResolutionError
 from documents.versioning import annotate_effective_content
+from documents.versioning import document_versions_prefetch
 from documents.versioning import get_latest_version_for_root
 from documents.versioning import get_request_version_param
 from documents.versioning import get_root_document
@@ -1183,18 +1185,7 @@ class DocumentViewSet(
         # database to fully sort and dedupe every visible document before
         # it can apply LIMIT, which is disastrous at scale.
         prefetches = [
-            Prefetch(
-                "versions",
-                queryset=Document.objects.only(
-                    "id",
-                    "added",
-                    "checksum",
-                    "version_label",
-                    "root_document_id",
-                    "version_index",
-                    "page_count",
-                ),
-            ),
+            document_versions_prefetch(),
             "tags",
             Prefetch(
                 "custom_fields",
@@ -1268,21 +1259,22 @@ class DocumentViewSet(
         *args: Any,
         **kwargs: Any,
     ) -> Response:
-        response = super().retrieve(request, *args, **kwargs)
-        if (
-            "version" not in request.query_params
-            or not isinstance(response.data, dict)
-            or not ({"content", "page_count"} & response.data.keys())
-        ):
-            return response
-
         root_doc = self.get_object()
-        content_doc = self._resolve_file_doc(root_doc, request)
-        if "content" in response.data:
-            response.data["content"] = content_doc.content or ""
-        if "page_count" in response.data:
-            response.data["page_count"] = content_doc.page_count
-        return response
+        serializer = self.get_serializer(root_doc)
+        file_doc = None
+        if "version" in request.query_params and (
+            {"content", "page_count", "original_size", "archive_size"}
+            & serializer.fields.keys()
+        ):
+            file_doc = self._resolve_file_doc(root_doc, request)
+            serializer.context["file_document"] = file_doc
+        data = serializer.data
+        if file_doc is not None:
+            if "content" in data:
+                data["content"] = file_doc.content or ""
+            if "page_count" in data:
+                data["page_count"] = file_doc.page_count
+        return Response(data)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
@@ -1318,7 +1310,10 @@ class DocumentViewSet(
             content_doc.save(update_fields=["content", "modified"])
 
         refreshed_doc = self.get_queryset().get(pk=root_doc.pk)
-        response_data = self.get_serializer(refreshed_doc).data
+        response_serializer = self.get_serializer(refreshed_doc)
+        if "version" in request.query_params:
+            response_serializer.context["file_document"] = content_doc
+        response_data = response_serializer.data
         if "version" in request.query_params and "content" in response_data:
             response_data["content"] = content_doc.content
         response = Response(response_data)
@@ -1472,9 +1467,7 @@ class DocumentViewSet(
             return []
 
     def get_filesize(self, filename):
-        if Path(filename).is_file():
-            return Path(filename).stat().st_size
-        return None
+        return get_file_size(filename)
 
     @action(methods=["get"], detail=True, filter_backends=[])
     @method_decorator(cache_control(no_cache=True))

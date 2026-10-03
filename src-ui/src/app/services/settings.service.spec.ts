@@ -472,6 +472,18 @@ describe('SettingsService', () => {
     expect(
       settingsService.allDisplayFields().includes(DEFAULT_DISPLAY_FIELDS[0])
     ).toBeTruthy() // title
+    expect(settingsService.allDisplayFields().map((field) => field.id)).toEqual(
+      expect.arrayContaining([
+        DisplayField.ORIGINAL_SIZE,
+        DisplayField.ARCHIVE_SIZE,
+      ])
+    )
+    expect(DEFAULT_DISPLAY_FIELDS.map((field) => field.id)).not.toEqual(
+      expect.arrayContaining([
+        DisplayField.ORIGINAL_SIZE,
+        DisplayField.ARCHIVE_SIZE,
+      ])
+    )
     expect(
       settingsService.allDisplayFields().includes(DEFAULT_DISPLAY_FIELDS[4])
     ).toBeFalsy() // correspondent

@@ -1,6 +1,23 @@
+from pathlib import Path
+
 import pytest_mock
 
 from documents.utils import QuerySetStream
+from documents.utils import get_file_size
+
+
+class TestFileSize:
+    def test_returns_size_including_zero_bytes(self, tmp_path: Path) -> None:
+        file = tmp_path / "document.pdf"
+        file.write_bytes(b"original")
+        assert get_file_size(file) == 8
+        file.write_bytes(b"")
+        assert get_file_size(file) == 0
+
+    def test_missing_files_and_directories_have_no_size(self, tmp_path: Path) -> None:
+        assert get_file_size(tmp_path / "missing.pdf") is None
+        assert get_file_size(tmp_path) is None
+        assert get_file_size(None) is None
 
 
 class TestQuerySetStream:

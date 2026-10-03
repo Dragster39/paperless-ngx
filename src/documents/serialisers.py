@@ -87,9 +87,13 @@ from documents.regex import validate_regex_pattern
 from documents.templating.filepath import validate_filepath_template_and_render
 from documents.templating.utils import convert_format_str_to_template_format
 from documents.templating.workflows import validate_workflow_template
+from documents.utils import get_file_size
 from documents.validators import uri_validator
 from documents.validators import url_validator
+from documents.versioning import FILE_VERSIONS_PREFETCH_ATTR
+from documents.versioning import get_latest_version_for_root
 from documents.versioning import has_prefetched_effective_content
+from documents.versioning import prefetch_document_file_versions
 from documents.versioning import sort_versions_newest_first
 
 if TYPE_CHECKING:
@@ -1034,6 +1038,14 @@ class DocumentVersionInfoSerializer(serializers.Serializer[_DocumentVersionInfo]
     is_root = serializers.BooleanField()
 
 
+class DocumentResponseListSerializer(OwnedObjectListSerializer):
+    def to_representation(self, documents):
+        if {"original_size", "archive_size"} & self.child.fields.keys():
+            documents = list(documents)
+            prefetch_document_file_versions(documents)
+        return super().to_representation(documents)
+
+
 @extend_schema_serializer(
     deprecate_fields=["created_date"],
 )
@@ -1051,6 +1063,8 @@ class DocumentSerializer(
     archived_file_name = SerializerMethodField()
     created_date = serializers.DateField(required=False)
     page_count = SerializerMethodField()
+    original_size = SerializerMethodField()
+    archive_size = SerializerMethodField()
     duplicate_documents = SerializerMethodField()
 
     notes = NotesSerializer(many=True, required=False, read_only=True)
@@ -1090,6 +1104,32 @@ class DocumentSerializer(
         if obj.root_document_id is None and prefetched_versions:
             return sort_versions_newest_first(prefetched_versions)[0].page_count
         return obj.page_count
+
+    def _get_file_document(self, obj: Document) -> Document:
+        if "file_document" in self.context:
+            return self.context["file_document"]
+        if obj.pk not in self._file_documents:
+            file_document = obj
+            if obj.root_document_id is None:
+                prefetched = getattr(obj, "_prefetched_objects_cache", {})
+                versions = prefetched.get("versions")
+                if versions is None:
+                    versions = getattr(obj, FILE_VERSIONS_PREFETCH_ATTR, None)
+                if versions is None:
+                    file_document = get_latest_version_for_root(obj)
+                elif versions:
+                    file_document = sort_versions_newest_first(versions)[0]
+            self._file_documents[obj.pk] = file_document
+        return self._file_documents[obj.pk]
+
+    def get_original_size(self, obj: Document) -> int | None:
+        return get_file_size(self._get_file_document(obj).source_path)
+
+    def get_archive_size(self, obj: Document) -> int | None:
+        file_document = self._get_file_document(obj)
+        if not file_document.has_archive_version:
+            return None
+        return get_file_size(file_document.archive_path)
 
     @extend_schema_field(DuplicateDocumentSummarySerializer(many=True))
     def get_duplicate_documents(self, obj):
@@ -1291,6 +1331,7 @@ class DocumentSerializer(
 
     def __init__(self, *args, **kwargs) -> None:
         self.truncate_content = kwargs.pop("truncate_content", False)
+        self._file_documents: dict[int, Document] = {}
 
         # return full permissions if we're doing a PATCH or PUT
         context = kwargs.get("context")
@@ -1330,12 +1371,14 @@ class DocumentSerializer(
             "custom_fields",
             "remove_inbox_tags",
             "page_count",
+            "original_size",
+            "archive_size",
             "mime_type",
             "root_document",
             "versions",
         )
         read_only_fields = ("deleted_at",)
-        list_serializer_class = OwnedObjectListSerializer
+        list_serializer_class = DocumentResponseListSerializer
 
 
 class SearchResultListSerializer(serializers.ListSerializer[Document]):
@@ -1343,6 +1386,8 @@ class SearchResultListSerializer(serializers.ListSerializer[Document]):
         document_ids = [hit["id"] for hit in hits]
         # Fetch all Document objects in the list in one SQL query.
         documents = self.child.fetch_documents(document_ids)
+        if {"original_size", "archive_size"} & self.child.fields.keys():
+            prefetch_document_file_versions(list(documents.values()))
         self.child.context["documents"] = documents
         # Also check if they are shared with other users / groups.
         self.child.context["shared_object_pks"] = self.child.get_shared_object_pks(

@@ -22,6 +22,8 @@ export enum DisplayField {
   SHARED = 'shared',
   ASN = 'asn',
   PAGE_COUNT = 'pagecount',
+  ORIGINAL_SIZE = 'original_size',
+  ARCHIVE_SIZE = 'archive_size',
 }
 
 export const DEFAULT_DISPLAY_FIELDS = [
@@ -75,6 +77,18 @@ export const DEFAULT_DISPLAY_FIELDS = [
   },
 ]
 
+export const AVAILABLE_DISPLAY_FIELDS = [
+  ...DEFAULT_DISPLAY_FIELDS,
+  {
+    id: DisplayField.ORIGINAL_SIZE,
+    name: $localize`Original file size`,
+  },
+  {
+    id: DisplayField.ARCHIVE_SIZE,
+    name: $localize`Archive file size`,
+  },
+]
+
 export const DEFAULT_DASHBOARD_VIEW_PAGE_SIZE = 10
 
 export const DEFAULT_DASHBOARD_DISPLAY_FIELDS = [
@@ -113,6 +127,10 @@ export interface SearchHit {
 }
 
 export interface Document extends ObjectWithPermissions {
+  original_size?: number | null
+
+  archive_size?: number | null
+
   correspondent?: number
 
   document_type?: number

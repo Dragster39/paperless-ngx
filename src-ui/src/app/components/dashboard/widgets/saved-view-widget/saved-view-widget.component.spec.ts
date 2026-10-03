@@ -185,6 +185,32 @@ describe('SavedViewWidgetComponent', () => {
     fixture.detectChanges()
   })
 
+  it('should display file sizes from a saved view in the table', () => {
+    component.displayFields.set([
+      DisplayField.ORIGINAL_SIZE,
+      DisplayField.ARCHIVE_SIZE,
+    ])
+    component.documents.set([
+      { id: 2, original_size: 0, archive_size: null },
+      { id: 3, original_size: 1024, archive_size: 2 * 1024 * 1024 },
+    ])
+    fixture.detectChanges()
+
+    expect(component.getColumnTitle(DisplayField.ORIGINAL_SIZE)).toEqual(
+      'Original file size'
+    )
+    expect(component.getColumnTitle(DisplayField.ARCHIVE_SIZE)).toEqual(
+      'Archive file size'
+    )
+    const text = fixture.nativeElement.textContent
+    expect(text).toContain('Original file size')
+    expect(text).toContain('Archive file size')
+    expect(text).toContain('0 bytes')
+    expect(text).toContain('—')
+    expect(text).toContain('1 KB')
+    expect(text).toContain('2.0 MB')
+  })
+
   it('should show a list of documents', async () => {
     jest.useFakeTimers()
     jest.spyOn(documentService, 'listFiltered').mockReturnValue(

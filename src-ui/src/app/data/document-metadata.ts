@@ -1,4 +1,8 @@
 export interface DocumentMetadata {
+  original_size?: number | null
+
+  archive_size?: number | null
+
   original_checksum?: string
 
   archived_checksum?: string

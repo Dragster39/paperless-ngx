@@ -5,6 +5,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing'
 import { By } from '@angular/platform-browser'
 import { RouterTestingModule } from '@angular/router/testing'
 import { NgxBootstrapIconsModule, allIcons } from 'ngx-bootstrap-icons'
+import { DisplayField } from 'src/app/data/document'
 import { TagComponent } from '../../common/tag/tag.component'
 import { DocumentCardSmallComponent } from './document-card-small.component'
 
@@ -59,6 +60,44 @@ describe('DocumentCardSmallComponent', () => {
 
   it('should display page count', () => {
     expect(fixture.nativeElement.textContent).toContain('12 pages')
+  })
+
+  it('should show file sizes only when individually enabled', () => {
+    fixture.componentRef.setInput('document', {
+      ...doc,
+      original_size: 1024,
+      archive_size: 2 * 1024 * 1024,
+    })
+    fixture.detectChanges()
+    expect(fixture.nativeElement.textContent).not.toContain('Original file size')
+    expect(fixture.nativeElement.textContent).not.toContain('Archive file size')
+
+    fixture.componentRef.setInput('displayFields', [DisplayField.ORIGINAL_SIZE])
+    fixture.detectChanges()
+    expect(fixture.nativeElement.textContent).toContain('Original file size: 1 KB')
+    expect(fixture.nativeElement.textContent).not.toContain('Archive file size')
+
+    fixture.componentRef.setInput('displayFields', [DisplayField.ARCHIVE_SIZE])
+    fixture.detectChanges()
+    expect(fixture.nativeElement.textContent).not.toContain('Original file size')
+    expect(fixture.nativeElement.textContent).toContain('Archive file size: 2.0 MB')
+  })
+
+  it('should distinguish zero bytes from an unavailable archive', () => {
+    fixture.componentRef.setInput('document', {
+      ...doc,
+      original_size: 0,
+      archive_size: null,
+    })
+    fixture.componentRef.setInput('displayFields', [
+      DisplayField.ORIGINAL_SIZE,
+      DisplayField.ARCHIVE_SIZE,
+    ])
+    fixture.detectChanges()
+    expect(fixture.nativeElement.textContent).toContain(
+      'Original file size: 0 bytes'
+    )
+    expect(fixture.nativeElement.textContent).toContain('Archive file size: —')
   })
 
   it('should lazy load the thumbnail', () => {
