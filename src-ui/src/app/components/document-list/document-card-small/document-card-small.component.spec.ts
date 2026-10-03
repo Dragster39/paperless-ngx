@@ -69,18 +69,44 @@ describe('DocumentCardSmallComponent', () => {
       archive_size: 2 * 1024 * 1024,
     })
     fixture.detectChanges()
-    expect(fixture.nativeElement.textContent).not.toContain('Original file size')
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'Original file size'
+    )
     expect(fixture.nativeElement.textContent).not.toContain('Archive file size')
 
     fixture.componentRef.setInput('displayFields', [DisplayField.ORIGINAL_SIZE])
     fixture.detectChanges()
-    expect(fixture.nativeElement.textContent).toContain('Original file size: 1 KB')
+    expect(fixture.nativeElement.textContent).toContain(
+      'Original file size: 1 KB'
+    )
+    const originalIcon = fixture.nativeElement.querySelector(
+      'i-bs[name="file-earmark-binary"]'
+    )
+    expect(originalIcon).not.toBeNull()
+    expect(originalIcon.getAttribute('aria-hidden')).toBe('true')
+    expect(
+      originalIcon.parentElement.querySelector('.visually-hidden').textContent
+    ).toBe('Original file size: ')
+    expect(originalIcon.parentElement.querySelector('svg')).not.toBeNull()
     expect(fixture.nativeElement.textContent).not.toContain('Archive file size')
 
     fixture.componentRef.setInput('displayFields', [DisplayField.ARCHIVE_SIZE])
     fixture.detectChanges()
-    expect(fixture.nativeElement.textContent).not.toContain('Original file size')
-    expect(fixture.nativeElement.textContent).toContain('Archive file size: 2.0 MB')
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'Original file size'
+    )
+    expect(fixture.nativeElement.textContent).toContain(
+      'Archive file size: 2.0 MB'
+    )
+    const archiveIcon = fixture.nativeElement.querySelector(
+      'i-bs[name="file-earmark-pdf"]'
+    )
+    expect(archiveIcon).not.toBeNull()
+    expect(archiveIcon.getAttribute('aria-hidden')).toBe('true')
+    expect(
+      archiveIcon.parentElement.querySelector('.visually-hidden').textContent
+    ).toBe('Archive file size: ')
+    expect(archiveIcon.parentElement.querySelector('svg')).not.toBeNull()
   })
 
   it('should distinguish zero bytes from an unavailable archive', () => {

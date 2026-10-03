@@ -139,13 +139,21 @@
                 </div>
               }
               @if (displayFields().includes(DisplayField.ORIGINAL_SIZE)) {
-                <div class="list-group-item bg-light text-dark p-1 border-0 d-flex align-items-center">
-                  <small><span i18n>Original file size</span>: {{document().original_size == null ? '—' : (document().original_size | fileSize)}}</small>
+                <ng-template #originalSizeTooltip>
+                  <span class="text-light" i18n>Original file size</span>
+                </ng-template>
+                <div class="list-group-item bg-light text-dark p-1 border-0 d-flex align-items-center" [ngbTooltip]="originalSizeTooltip">
+                  <i-bs width=".9em" height=".9em" class="me-2 text-muted" name="file-earmark-binary" aria-hidden="true"></i-bs>
+                  <small><span class="visually-hidden" i18n>Original file size: </span>{{document().original_size == null ? '—' : (document().original_size | fileSize)}}</small>
                 </div>
               }
               @if (displayFields().includes(DisplayField.ARCHIVE_SIZE)) {
-                <div class="list-group-item bg-light text-dark p-1 border-0 d-flex align-items-center">
-                  <small><span i18n>Archive file size</span>: {{document().archive_size == null ? '—' : (document().archive_size | fileSize)}}</small>
+                <ng-template #archiveSizeTooltip>
+                  <span class="text-light" i18n>Archive file size</span>
+                </ng-template>
+                <div class="list-group-item bg-light text-dark p-1 border-0 d-flex align-items-center" [ngbTooltip]="archiveSizeTooltip">
+                  <i-bs width=".9em" height=".9em" class="me-2 text-muted" name="file-earmark-pdf" aria-hidden="true"></i-bs>
+                  <small><span class="visually-hidden" i18n>Archive file size: </span>{{document().archive_size == null ? '—' : (document().archive_size | fileSize)}}</small>
                 </div>
               }
               @if (displayFields().includes(DisplayField.OWNER) && document().owner && document().owner !== settingsService.currentUser().id) {
