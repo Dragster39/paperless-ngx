@@ -12,8 +12,8 @@ import { of, Subscription } from 'rxjs'
 import { environment } from 'src/environments/environment'
 import { CustomFieldDataType } from '../data/custom-field'
 import { DEFAULT_DISPLAY_FIELDS, DisplayField } from '../data/document'
-import { SavedView } from '../data/saved-view'
 import { RemoteOCRModeConfig } from '../data/paperless-config'
+import { SavedView } from '../data/saved-view'
 import {
   HideableSidebarItemID,
   SETTINGS_KEYS,

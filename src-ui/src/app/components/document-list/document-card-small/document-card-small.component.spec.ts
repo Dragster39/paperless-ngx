@@ -126,6 +126,17 @@ describe('DocumentCardSmallComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Archive file size: —')
   })
 
+  it('should show unavailable sizes when the properties are omitted', () => {
+    fixture.componentRef.setInput('displayFields', [
+      DisplayField.ORIGINAL_SIZE,
+      DisplayField.ARCHIVE_SIZE,
+    ])
+    fixture.detectChanges()
+
+    expect(fixture.nativeElement.textContent).toContain('Original file size: —')
+    expect(fixture.nativeElement.textContent).toContain('Archive file size: —')
+  })
+
   it('should lazy load the thumbnail', () => {
     const thumbnail: HTMLImageElement =
       fixture.nativeElement.querySelector('img.doc-img')

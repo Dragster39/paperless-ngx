@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from errno import EIO
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
@@ -13,6 +15,9 @@ from documents.serialisers import SearchResultSerializer
 from paperless_testing.factories import DocumentFactory
 
 if TYPE_CHECKING:
+    from os import stat_result
+    from typing import Any
+
     from pytest_mock import MockerFixture
     from rest_framework.test import APIClient
 
@@ -67,6 +72,65 @@ class TestDocumentSizes:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["original_size"] is None
         assert response.data["archive_size"] is None
+
+    @pytest.mark.parametrize("size_field", ["original_size", "archive_size"])
+    @pytest.mark.parametrize(
+        "error",
+        [
+            pytest.param(PermissionError("denied"), id="permission"),
+            pytest.param(OSError(EIO, "I/O error"), id="io"),
+        ],
+    )
+    def test_inaccessible_files_do_not_prevent_listing_or_retrieval(
+        self,
+        admin_client: APIClient,
+        mocker: MockerFixture,
+        size_field: str,
+        error: OSError,
+    ) -> None:
+        affected = DocumentFactory(
+            title="Affected document",
+            filename="affected.pdf",
+            archive_filename="affected-archive.pdf",
+        )
+        healthy = DocumentFactory(
+            title="Healthy document",
+            filename="healthy.pdf",
+            archive_filename="healthy-archive.pdf",
+        )
+        for doc in (affected, healthy):
+            doc.source_path.write_bytes(b"original")
+            assert doc.archive_path is not None
+            doc.archive_path.write_bytes(b"archive")
+        inaccessible_path = (
+            affected.source_path
+            if size_field == "original_size"
+            else affected.archive_path
+        )
+        original_stat = Path.stat
+
+        def stat(path: Path, *args: Any, **kwargs: Any) -> stat_result:
+            if path == inaccessible_path:
+                raise error
+            return original_stat(path, *args, **kwargs)
+
+        mocker.patch.object(Path, "stat", autospec=True, side_effect=stat)
+
+        listing = admin_client.get("/api/documents/")
+        detail = admin_client.get(f"/api/documents/{affected.pk}/")
+
+        assert listing.status_code == status.HTTP_200_OK
+        assert detail.status_code == status.HTTP_200_OK
+        documents = {doc["id"]: doc for doc in listing.data["results"]}
+        assert set(documents) == {affected.pk, healthy.pk}
+        assert documents[affected.pk]["title"] == affected.title
+        assert documents[healthy.pk]["title"] == healthy.title
+        expected_sizes = {"original_size": 8, "archive_size": 7}
+        for field, size in expected_sizes.items():
+            assert documents[healthy.pk][field] == size
+            expected = None if field == size_field else size
+            assert documents[affected.pk][field] == expected
+            assert detail.data[field] == expected
 
     def test_sizes_follow_version_index_and_explicit_version(
         self,

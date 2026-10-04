@@ -193,6 +193,7 @@ describe('SavedViewWidgetComponent', () => {
     component.documents.set([
       { id: 2, original_size: 0, archive_size: null },
       { id: 3, original_size: 1024, archive_size: 2 * 1024 * 1024 },
+      { id: 4 },
     ])
     fixture.detectChanges()
 
@@ -209,6 +210,11 @@ describe('SavedViewWidgetComponent', () => {
     expect(text).toContain('—')
     expect(text).toContain('1 KB')
     expect(text).toContain('2.0 MB')
+    const unavailableSizes = fixture.nativeElement
+      .querySelectorAll('tbody tr')[2]
+      .querySelectorAll('td')
+    expect(unavailableSizes[0].textContent.trim()).toBe('—')
+    expect(unavailableSizes[1].textContent.trim()).toBe('—')
   })
 
   it('should show a list of documents', async () => {

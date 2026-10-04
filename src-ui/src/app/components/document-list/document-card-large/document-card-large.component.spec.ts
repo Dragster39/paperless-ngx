@@ -147,6 +147,17 @@ describe('DocumentCardLargeComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Archive file size: —')
   })
 
+  it('should show unavailable sizes when the properties are omitted', () => {
+    fixture.componentRef.setInput('displayFields', [
+      DisplayField.ORIGINAL_SIZE,
+      DisplayField.ARCHIVE_SIZE,
+    ])
+    fixture.detectChanges()
+
+    expect(fixture.nativeElement.textContent).toContain('Original file size: —')
+    expect(fixture.nativeElement.textContent).toContain('Archive file size: —')
+  })
+
   it('should display a document', () => {
     expect(fixture.nativeElement.textContent).toContain('Document 10')
     expect(fixture.nativeElement.textContent).toContain('Cupcake ipsum')

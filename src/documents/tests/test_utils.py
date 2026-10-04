@@ -1,5 +1,7 @@
+from errno import EIO
 from pathlib import Path
 
+import pytest
 import pytest_mock
 
 from documents.utils import QuerySetStream
@@ -18,6 +20,23 @@ class TestFileSize:
         assert get_file_size(tmp_path / "missing.pdf") is None
         assert get_file_size(tmp_path) is None
         assert get_file_size(None) is None
+
+    @pytest.mark.parametrize(
+        "error",
+        [
+            pytest.param(PermissionError("denied"), id="permission"),
+            pytest.param(OSError(EIO, "I/O error"), id="io"),
+        ],
+    )
+    def test_inaccessible_files_have_no_size(
+        self,
+        tmp_path: Path,
+        mocker: pytest_mock.MockerFixture,
+        error: OSError,
+    ) -> None:
+        mocker.patch.object(Path, "stat", side_effect=error)
+
+        assert get_file_size(tmp_path / "document.pdf") is None
 
 
 class TestQuerySetStream:

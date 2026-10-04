@@ -28,12 +28,12 @@ IterWrapper = Callable[[Iterable[_T]], Iterable[_T]]
 
 
 def get_file_size(filename: Path | str | None) -> int | None:
-    """Return a regular file's size in bytes, or None if it is missing."""
+    """Return a regular file's size in bytes, or None if it is unavailable."""
     if filename is None:
         return None
     try:
         file_stat = Path(filename).stat()
-    except (FileNotFoundError, NotADirectoryError):
+    except OSError:
         return None
     return file_stat.st_size if S_ISREG(file_stat.st_mode) else None
 

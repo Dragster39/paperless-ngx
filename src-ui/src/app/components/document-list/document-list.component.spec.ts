@@ -375,10 +375,13 @@ describe('DocumentListComponent', () => {
   })
 
   it('should display optional file size columns without sorting', () => {
-    jest.spyOn(documentListService, 'documents', 'get').mockReturnValue([
-      { ...docs[0], original_size: 0, archive_size: null },
-      { ...docs[1], original_size: 1024, archive_size: 2 * 1024 * 1024 },
-    ])
+    jest
+      .spyOn(documentListService, 'documents', 'get')
+      .mockReturnValue([
+        { ...docs[0], original_size: 0, archive_size: null },
+        { ...docs[1], original_size: 1024, archive_size: 2 * 1024 * 1024 },
+        docs[2],
+      ])
     component.list.displayMode = DisplayMode.TABLE
     component.activeDisplayFields = [
       DisplayField.ORIGINAL_SIZE,
@@ -393,6 +396,11 @@ describe('DocumentListComponent', () => {
     expect(text).toContain('—')
     expect(text).toContain('1 KB')
     expect(text).toContain('2.0 MB')
+    const unavailableSizes = fixture.nativeElement
+      .querySelectorAll('tbody tr')[2]
+      .querySelectorAll('td')
+    expect(unavailableSizes[1].textContent.trim()).toBe('—')
+    expect(unavailableSizes[2].textContent.trim()).toBe('—')
     expect(
       fixture.debugElement.queryAll(By.directive(SortableDirective))
     ).toHaveLength(0)

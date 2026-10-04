@@ -117,7 +117,7 @@
             </ng-template>
             <div class="ps-0 p-1" [ngbTooltip]="originalSizeTooltip">
               <i-bs width="1em" height="1em" class="me-2 text-muted" name="file-earmark-binary" aria-hidden="true"></i-bs>
-              <small><span class="visually-hidden" i18n>Original file size: </span>{{document().original_size == null ? '—' : (document().original_size | fileSize)}}</small>
+              <small><span class="visually-hidden" i18n>Original file size: </span>{{document().original_size === null || document().original_size === undefined ? '—' : (document().original_size | fileSize)}}</small>
             </div>
           }
           @if (displayFields().includes(DisplayField.ARCHIVE_SIZE)) {
@@ -126,7 +126,7 @@
             </ng-template>
             <div class="ps-0 p-1" [ngbTooltip]="archiveSizeTooltip">
               <i-bs width="1em" height="1em" class="me-2 text-muted" name="file-earmark-pdf" aria-hidden="true"></i-bs>
-              <small><span class="visually-hidden" i18n>Archive file size: </span>{{document().archive_size == null ? '—' : (document().archive_size | fileSize)}}</small>
+              <small><span class="visually-hidden" i18n>Archive file size: </span>{{document().archive_size === null || document().archive_size === undefined ? '—' : (document().archive_size | fileSize)}}</small>
             </div>
           }
           @if (displayFields().includes(DisplayField.ASN) && document().archive_serial_number | isNumber) {

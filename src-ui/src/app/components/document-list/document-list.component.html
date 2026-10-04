@@ -395,10 +395,10 @@
                   </td>
                 }
                 @if (activeDisplayFields.includes(DisplayField.ORIGINAL_SIZE)) {
-                  <td>{{d.original_size == null ? '—' : (d.original_size | fileSize)}}</td>
+                  <td>{{d.original_size === null || d.original_size === undefined ? '—' : (d.original_size | fileSize)}}</td>
                 }
                 @if (activeDisplayFields.includes(DisplayField.ARCHIVE_SIZE)) {
-                  <td>{{d.archive_size == null ? '—' : (d.archive_size | fileSize)}}</td>
+                  <td>{{d.archive_size === null || d.archive_size === undefined ? '—' : (d.archive_size | fileSize)}}</td>
                 }
                 @for (field of activeDisplayCustomFields; track field) {
                   <td class="">
